@@ -1,0 +1,334 @@
+{% extends "layout.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+
+<style>
+
+#map-container{
+display:flex;
+gap:20px;
+margin-top:20px;
+}
+
+#map{
+flex:2;
+height:500px;
+border-radius:10px;
+}
+
+#food-items-sidebar{
+flex:1;
+background:white;
+padding:15px;
+border-radius:10px;
+box-shadow:0 5px 20px rgba(0,0,0,0.1);
+max-height:500px;
+overflow-y:auto;
+}
+
+.map-food-item{
+padding:10px;
+border-bottom:1px solid #eee;
+cursor:pointer;
+}
+
+.map-food-item:hover{
+background:#f6f6f6;
+}
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+<h2 class="mb-4">Recipient Dashboard</h2>
+
+<!-- ================= CLAIMED ITEMS ================= -->
+
+<div class="dashboard-section mb-5">
+
+<h3 class="mb-4">Your Claimed Food</h3>
+
+{% if claimed_items %}
+
+<div class="row g-4">
+
+{% for claim in claimed_items %}
+
+<div class="col-md-4">
+
+<div class="card shadow-sm h-100">
+
+<div class="card-body">
+
+<h5 class="card-title">
+{{ claim.food_item.name }}
+</h5>
+
+<p class="text-muted">
+📦 Quantity: {{ claim.food_item.quantity }}
+</p>
+
+<p>
+📍 {{ claim.food_item.location_name }}
+</p>
+
+<p>
+⏳ Expires: {{ claim.food_item.expiration_date.strftime('%d %b %Y') }}
+</p>
+
+<p>
+🕒 Claimed on: {{ claim.claimed_at.strftime('%d %b %Y %H:%M') }}
+</p>
+
+<span class="badge bg-warning mb-3">
+{{ claim.status.capitalize() }}
+</span>
+
+{% if claim.delivery_partner %}
+
+<div class="alert alert-light mt-2">
+
+<strong>Delivery Partner</strong>
+
+<p class="mb-1">
+👤 {{ claim.delivery_partner.name }}
+</p>
+
+<p class="mb-1">
+📞 {{ claim.delivery_partner.phone }}
+</p>
+
+<p class="mb-0">
+✉ {{ claim.delivery_partner.email }}
+</p>
+
+</div>
+
+{% else %}
+
+<p class="text-muted">
+No delivery assigned
+</p>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+{% else %}
+
+<div class="alert alert-info">
+You haven't claimed any food yet.
+</div>
+
+{% endif %}
+
+</div>
+
+
+<!-- ================= MAP SECTION ================= -->
+
+<div class="dashboard-section">
+
+<h3 class="mb-3">Available Food Map</h3>
+
+<div id="map-container">
+
+<div id="map"></div>
+
+<div id="food-items-sidebar">
+
+<h5>Available Food</h5>
+
+<div id="food-items-list">
+<p>Loading food...</p>
+</div>
+
+</div>
+
+</div>
+
+<script id="food-data" type="application/json">
+{{ serialized_food_items | tojson }}
+</script>
+
+</div>
+
+</div>
+
+{% endblock %}
+
+
+
+{% block scripts %}
+
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+<script>
+
+document.addEventListener('DOMContentLoaded',function(){
+
+const foodItems = JSON.parse(document.getElementById('food-data').textContent);
+
+const foodItemsList = document.getElementById('food-items-list');
+
+const markers = {};
+const bounds = [];
+
+const map = L.map('map',{
+center:[22.9734,78.6569],
+zoom:5
+});
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+attribution:'© OpenStreetMap contributors'
+}).addTo(map);
+
+foodItemsList.innerHTML='';
+
+foodItems.forEach(item=>{
+
+const lat=parseFloat(item.latitude);
+const lng=parseFloat(item.longitude);
+
+if(!isNaN(lat)&&!isNaN(lng)){
+
+const marker=L.marker([lat,lng]).addTo(map);
+
+markers[item.id]=marker;
+
+const popupContent=`
+
+<div>
+
+<h6>${item.name}</h6>
+
+<p>📦 ${item.quantity}</p>
+
+<p>📍 ${item.location_name}</p>
+
+<p>⏳ ${item.expiration_date}</p>
+
+<label>
+<input type="checkbox" id="delivery-${item.id}">
+Request delivery
+</label>
+
+<br><br>
+
+<button class="btn btn-success btn-sm claim-btn" data-id="${item.id}">
+Claim Food
+</button>
+
+<div id="popup-response-${item.id}"></div>
+
+</div>
+
+`;
+
+marker.bindPopup(popupContent);
+
+bounds.push([lat,lng]);
+
+const sidebarItem=document.createElement('div');
+
+sidebarItem.className='map-food-item';
+
+sidebarItem.dataset.id=item.id;
+
+sidebarItem.innerHTML=`
+<strong>${item.name}</strong>
+<p class="mb-1">${item.quantity}</p>
+<small>Expires ${item.expiration_date}</small>
+`;
+
+sidebarItem.addEventListener('click',()=>{
+
+map.setView([lat,lng],16);
+
+marker.openPopup();
+
+});
+
+foodItemsList.appendChild(sidebarItem);
+
+}
+
+});
+
+if(bounds.length>0){
+map.fitBounds(bounds);
+}
+
+map.on('popupopen',function(e){
+
+const popup=e.popup._contentNode;
+
+const button=popup.querySelector('.claim-btn');
+
+const checkbox=popup.querySelector('input[type="checkbox"]');
+
+button.addEventListener('click',function(){
+
+const foodId=this.dataset.id;
+
+const wantsDelivery=checkbox.checked;
+
+const responseBox=document.getElementById(`popup-response-${foodId}`);
+
+fetch(`/recipient/claim/${foodId}`,{
+method:'POST',
+headers:{'Content-Type':'application/json'},
+body:JSON.stringify({wants_delivery:wantsDelivery})
+})
+.then(res=>res.json())
+.then(data=>{
+
+if(data.success){
+
+responseBox.innerHTML='<p style="color:green;">Claimed successfully</p>';
+
+map.removeLayer(markers[foodId]);
+
+setTimeout(()=>window.location.reload(),1500);
+
+}
+
+else{
+
+responseBox.innerHTML='<p style="color:red;">'+data.message+'</p>';
+
+}
+
+})
+
+});
+
+});
+
+if(navigator.geolocation){
+
+navigator.geolocation.getCurrentPosition(function(pos){
+
+map.setView([pos.coords.latitude,pos.coords.longitude],13);
+
+});
+
+}
+
+});
+
+</script>
+
+{% endblock %}

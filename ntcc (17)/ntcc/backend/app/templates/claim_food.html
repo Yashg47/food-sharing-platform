@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h2>Confirm Claim</h2>
+
+<p><strong>Food:</strong> {{ food.name }}</p>
+<p><strong>Price:</strong> ₹{{ food.discounted_price }}</p>
+
+<p><strong>Delivery Fee:</strong> ₹{{ delivery_fee }}</p>
+
+<p><strong>Total:</strong> ₹{{ food.discounted_price + delivery_fee }}</p>
+
+<form method="POST">
+    <button type="submit">Confirm Claim</button>
+</form>
+
+{% endblock %}

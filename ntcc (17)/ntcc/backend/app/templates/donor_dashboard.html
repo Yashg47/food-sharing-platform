@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="container">
+
+<h2 class="mb-4">Donor Dashboard</h2>
+
+<div class="mb-4">
+<a href="{{ url_for('donor.post_food') }}" class="btn btn-success">
+➕ Post New Food Item
+</a>
+</div>
+
+
+<div class="dashboard-section">
+
+<h3 class="mb-4">Your Posted Food</h3>
+
+{% if food_items %}
+
+<div class="row g-4">
+
+{% for item in food_items %}
+
+<div class="col-md-4">
+
+<div class="card shadow-sm h-100">
+
+<div class="card-body">
+
+<h5 class="card-title">
+{{ item.name }}
+</h5>
+
+<p class="text-muted">
+📦 Quantity: {{ item.quantity }}
+</p>
+
+<p>
+📍 {{ item.location_name }}
+</p>
+
+<p>
+⏳ Expires: {{ item.expiration_date.strftime('%d %b %Y') }}
+</p>
+
+{% if item.description %}
+<p>
+📝 {{ item.description }}
+</p>
+{% endif %}
+
+<p class="text-muted">
+Posted: {{ item.created_at.strftime('%d %b %Y %H:%M') }}
+</p>
+
+{% if item.is_claimed %}
+
+<span class="badge bg-warning">
+Claimed
+</span>
+
+{% else %}
+
+<span class="badge bg-success">
+Available
+</span>
+
+{% endif %}
+
+</div>
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+{% else %}
+
+<div class="alert alert-info">
+You haven't posted any food yet.
+</div>
+
+{% endif %}
+
+</div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="container mt-4">
+
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>🚚 Add Delivery Partner</h2>
+    </div>
+
+
+    <!-- Add Partner Form -->
+    <div class="card shadow-sm p-4 mb-5">
+
+        <h4 class="mb-3">New Partner Details</h4>
+
+        <form method="POST">
+
+            <div class="mb-3">
+                <label class="form-label">Partner Name</label>
+                <input type="text"
+                       name="name"
+                       class="form-control"
+                       placeholder="Enter partner name"
+                       required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email Address</label>
+                <input type="email"
+                       name="email"
+                       class="form-control"
+                       placeholder="partner@email.com"
+                       required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Phone Number</label>
+                <input type="text"
+                       name="phone"
+                       class="form-control"
+                       placeholder="+91 XXXXX XXXXX"
+                       required>
+            </div>
+
+            <button type="submit"
+                    class="btn btn-primary">
+                ➕ Add Partner
+            </button>
+
+        </form>
+    </div>
+
+
+
+    <!-- Existing Partners List -->
+    {% if partners %}
+    <div class="card shadow-sm p-4">
+
+        <h4 class="mb-3">📋 Existing Delivery Partners</h4>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for partner in partners %}
+                    <tr>
+                        <td>{{ partner.name }}</td>
+                        <td>{{ partner.email }}</td>
+                        <td>{{ partner.phone }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

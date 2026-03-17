@@ -1,0 +1,206 @@
+{% extends "layout.html" %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"/>
+
+<style>
+#map-container {
+    display: flex;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+#map {
+    flex: 2;
+    height: 520px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+}
+
+#food-items-sidebar {
+    flex: 1;
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    max-height: 520px;
+    overflow-y: auto;
+}
+
+.map-food-item {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.map-food-item:hover {
+    background: #f5f5f5;
+}
+
+.loading {
+    color: gray;
+    font-style: italic;
+}
+</style>
+{% endblock %}
+
+
+{% block content %}
+<h2>🗺️ Surplus Food Near You</h2>
+
+<!-- Filters -->
+<div class="mb-3">
+
+    <input type="text" id="filter-location"
+           placeholder="Location">
+
+    <input type="date" id="filter-expiry">
+
+    <input type="text" id="filter-keyword"
+           placeholder="Keyword">
+
+    <button onclick="applyFilters()"
+            class="btn btn-sm btn-primary">
+        Apply
+    </button>
+
+    <button onclick="resetFilters()"
+            class="btn btn-sm btn-secondary">
+        Reset
+    </button>
+</div>
+
+
+<div id="map-container">
+    <div id="map"></div>
+
+    <div id="food-items-sidebar">
+        <h4>Available Items</h4>
+        <div id="food-items-list">
+            <p class="loading">Loading...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+
+<script>
+let map;
+let markers = {};
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    map = L.map('map').setView([20.5937, 78.9629], 5);
+
+    L.tileLayer(
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        { attribution: '&copy; OpenStreetMap' }
+    ).addTo(map);
+
+    loadFoodItems();
+
+});
+
+
+/* ---------------- LOAD FOOD ---------------- */
+function loadFoodItems(query="") {
+
+    const list = document.getElementById('food-items-list');
+    list.innerHTML = '<p class="loading">Loading...</p>';
+
+    fetch(`/api/food-items${query}`)
+    .then(res => res.json())
+    .then(data => {
+
+        list.innerHTML = '';
+        Object.values(markers).forEach(m => map.removeLayer(m));
+        markers = {};
+
+        if (!data.length) {
+            list.innerHTML = '<p>No food available.</p>';
+            return;
+        }
+
+        const bounds = [];
+
+        data.forEach(item => {
+
+            const marker = L.marker(
+                [item.latitude, item.longitude]
+            ).addTo(map);
+
+            markers[item.id] = marker;
+            bounds.push([item.latitude, item.longitude]);
+
+            marker.bindPopup(`
+                <b>${item.name}</b><br>
+                Qty: ${item.quantity}<br>
+                Expires: ${item.expiration_date}<br>
+                <button onclick="claimFood(${item.id})"
+                        class="btn btn-sm btn-primary mt-2">
+                    Claim
+                </button>
+            `);
+
+            const div = document.createElement('div');
+            div.className = 'map-food-item';
+            div.innerHTML = `
+                <h5>${item.name}</h5>
+                <small>${item.location_name}</small>
+            `;
+
+            div.onclick = () => {
+                map.setView(
+                    [item.latitude, item.longitude],
+                    15
+                );
+                marker.openPopup();
+            };
+
+            list.appendChild(div);
+        });
+
+        map.fitBounds(bounds);
+    });
+}
+
+
+/* ---------------- FILTERS ---------------- */
+function applyFilters() {
+
+    const loc = document.getElementById('filter-location').value;
+    const exp = document.getElementById('filter-expiry').value;
+    const key = document.getElementById('filter-keyword').value;
+
+    const query =
+        `?location=${loc}&expires_after=${exp}&keyword=${key}`;
+
+    loadFoodItems(query);
+}
+
+function resetFilters() {
+
+    document.getElementById('filter-location').value='';
+    document.getElementById('filter-expiry').value='';
+    document.getElementById('filter-keyword').value='';
+
+    loadFoodItems();
+}
+
+
+/* ---------------- CLAIM ---------------- */
+function claimFood(id) {
+
+    fetch(`/claim/${id}`, { method:'POST' })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message);
+        if(data.success) loadFoodItems();
+    });
+}
+</script>
+{% endblock %}

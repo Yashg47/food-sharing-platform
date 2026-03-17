@@ -1,0 +1,83 @@
+{% extends "layout.html" %}
+
+{% block head %}
+<style>
+.notifications-container {
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 25px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.notifications-container h2 {
+    color: #4CAF50;
+    margin-bottom: 20px;
+}
+
+.notifications-list {
+    margin-top: 10px;
+}
+
+.notification-item {
+    padding: 15px 20px;
+    border-left: 4px solid #4CAF50;
+    background: #f9f9f9;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    transition: 0.3s;
+}
+
+.notification-item:hover {
+    background: #f1f7f1;
+}
+
+.notification-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.notification-time {
+    font-size: 0.85em;
+    color: #888;
+    white-space: nowrap;
+}
+
+.no-items {
+    text-align: center;
+    padding: 20px;
+    color: #777;
+    font-style: italic;
+}
+</style>
+{% endblock %}
+
+
+{% block content %}
+<div class="notifications-container">
+
+    <h2>🔔 Your Notifications</h2>
+
+    {% if notifications %}
+        <div class="notifications-list">
+
+            {% for notification in notifications %}
+                <div class="notification-item">
+                    <div class="notification-content">
+                        <p>{{ notification.message }}</p>
+                        <span class="notification-time">
+                            {{ notification.created_at.strftime('%d %b %Y • %I:%M %p') }}
+                        </span>
+                    </div>
+                </div>
+            {% endfor %}
+
+        </div>
+    {% else %}
+        <p class="no-items">You don't have any notifications yet.</p>
+    {% endif %}
+
+</div>
+{% endblock %}

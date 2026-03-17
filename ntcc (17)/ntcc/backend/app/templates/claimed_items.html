@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="dashboard">
+    <h2>Your Claimed Food Items</h2>
+
+    {% if claimed_items %}
+        <div class="food-items-grid">
+            {% for claim in claimed_items %}
+                <div class="food-item-card claimed">
+                    <div class="food-item-header">
+                        <h4>{{ claim.food_item.name }}</h4>
+                        <span class="status claimed">Claimed</span>
+                    </div>
+                    <div class="food-item-details">
+                        <p><strong>Quantity:</strong> {{ claim.food_item.quantity }}</p>
+                        <p><strong>Location:</strong> {{ claim.food_item.location_name }}</p>
+                        <p><strong>Expires:</strong> {{ claim.food_item.expiration_date.strftime('%Y-%m-%d') }}</p>
+                        {% if claim.food_item.description %}
+                            <p><strong>Description:</strong> {{ claim.food_item.description }}</p>
+                        {% endif %}
+                        <p><strong>Claimed On:</strong> {{ claim.claimed_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        <p><strong>Status:</strong> {{ claim.status.capitalize() }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="no-items">You haven’t claimed any food items yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

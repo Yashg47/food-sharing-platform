@@ -1,0 +1,72 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="container mt-5 text-center">
+
+    <h2 class="mb-4">💳 Choose Your Subscription Plan</h2>
+    <p class="text-muted mb-5">
+        Upgrade to unlock advanced surplus food monetization features.
+    </p>
+
+
+    <div class="row justify-content-center">
+
+        <!-- Free Plan -->
+        <div class="col-md-4 mb-4">
+
+            <div class="card shadow-sm p-4 h-100">
+
+                <h3>Free</h3>
+                <h2 class="text-success">₹0</h2>
+                <p>/ month</p>
+
+                <ul class="list-unstyled mt-3">
+                    <li>✔ Limited Listings</li>
+                    <li>✔ Basic Visibility</li>
+                    <li>✔ Community Access</li>
+                </ul>
+
+                <button class="btn btn-outline-secondary mt-3" disabled>
+                    Current Plan
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- Pro Plan -->
+        <div class="col-md-4 mb-4">
+
+            <div class="card shadow-lg border-primary p-4 h-100">
+
+                <h3 class="text-primary">Pro</h3>
+                <h2>₹999</h2>
+                <p>/ month</p>
+
+                <ul class="list-unstyled mt-3">
+                    <li>🚀 Unlimited Listings</li>
+                    <li>📢 Priority Visibility</li>
+                    <li>⭐ Sponsored Listings</li>
+                    <li>📊 Analytics Dashboard</li>
+                    <li>🤖 Auto Pickup Scheduling</li>
+                </ul>
+
+                <form method="POST"
+                      action="{{ url_for('subscribe') }}">
+
+                    <button class="btn btn-primary mt-3 w-100">
+                        Upgrade to Pro
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>🏢 Business Dashboard</h2>
+    </div>
+
+
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+
+        <div class="col-md-4">
+            <div class="card shadow-sm text-center p-3">
+                <h5>Total Food Listed</h5>
+                <h2 class="text-success">{{ total_food }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm text-center p-3">
+                <h5>Total Claimed</h5>
+                <h2 class="text-primary">{{ claimed_food }}</h2>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm text-center p-3">
+                <h5>Commission Paid</h5>
+                <h2 class="text-danger">₹{{ commission_paid }}</h2>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- Recent Listings -->
+    <div class="card shadow-sm p-4">
+
+        <h4 class="mb-3">📦 Recent Surplus Listings</h4>
+
+        {% if foods %}
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+
+                <thead class="table-light">
+                    <tr>
+                        <th>Food Item</th>
+                        <th>Original Price</th>
+                        <th>Discounted Price</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for food in foods %}
+                    <tr>
+                        <td>{{ food.name }}</td>
+                        <td>₹{{ food.original_price }}</td>
+                        <td>₹{{ food.discounted_price }}</td>
+                        <td>
+                            {% if food.is_claimed %}
+                                <span class="badge bg-warning">Claimed</span>
+                            {% else %}
+                                <span class="badge bg-success">Available</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+        {% else %}
+            <p class="text-muted">No listings yet.</p>
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}
